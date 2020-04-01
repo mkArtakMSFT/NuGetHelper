@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/NuGetPackageManager/.vs/
+/src/**/bin/
+/src/**/obj/
+/src/NuGetPackageManager/Properties/launchSettings.json
