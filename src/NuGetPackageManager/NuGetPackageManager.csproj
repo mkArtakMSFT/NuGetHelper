@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,8 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
-    <PackageReference Include="NuGet.Protocol.Core.Types" Version="4.2.0" />
-    <PackageReference Include="NuGet.Protocol.Core.v3" Version="4.2.0" />
+    <PackageReference Include="NuGet.Protocol" Version="5.5.0" />
   </ItemGroup>
 
 </Project>
