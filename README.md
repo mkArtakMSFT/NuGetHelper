@@ -1,7 +1,7 @@
 # NuGetHelper
 A tool to help with NuGet package management
 
-This utilitiy is used to help with unlisting NuGet NuGet packages.
+This utilitiy is used to help with unlisting NuGet packages.
 It automates the process of unlisting individual versions of a given package and can also handle unlisting multiple packages at once.
 
 The tool accepts the following set of parameters:
