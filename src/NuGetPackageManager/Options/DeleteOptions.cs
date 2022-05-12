@@ -2,10 +2,10 @@
 using CommandLine.Text;
 using System.Collections.Generic;
 
-namespace NuGetPackageManager
+namespace NuGetPackageManager.Options
 {
     [Verb("delete", HelpText = "Unlist all versions of the specified packages")]
-    public class DeleteOptions
+    public class DeleteOptions : INugetApiOptions
     {
         public DeleteOptions(string apiKey, IEnumerable<string> packageNames, bool force)
         {
