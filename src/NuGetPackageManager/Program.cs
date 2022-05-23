@@ -1,81 +1,77 @@
-﻿using CommandLine;
-using NuGet.Common;
+﻿using NuGet.Common;
 using NuGetPackageManager.Options;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
+using System.CommandLine;
 using System.Threading.Tasks;
 
 namespace NuGetPackageManager
 {
     class Program
     {
+        static ILogger logger = new CompositeLogger();
+
         static async Task Main(string[] args)
         {
-            var logger = new CompositeLogger();
+            var rootCommand = new RootCommand("NuGet package manager command-line app");
+            var apiKeyOption = new Option<string>("--apiKey", "Provide PAT for the NuGet API account");
+            rootCommand.AddGlobalOption(apiKeyOption);
 
-            //await RunUnlistingAsync(args, logger);
+            rootCommand.Add(BuildUnlistCommand());
+            rootCommand.Add(BuildDeprecateCommand());
 
-            await RunDeprecationAsync(args, logger);
+            await rootCommand.InvokeAsync(args);
         }
 
-        private static async Task RunUnlistingAsync(string[] args, CompositeLogger logger)
+        private static Command BuildDeprecateCommand()
         {
-            var parsedOptions = Parser.Default.ParseArguments<DeleteOptions>(args);
-            await parsedOptions.MapResult(async options =>
+            var result = new Command("deprecate", "Deprecate specific versions of a specified package");
+
+            var packageIdOption = new Option<string>("packageId", "The name of the package to deprecate");
+            result.AddOption(packageIdOption);
+
+            var versionsOption = new Option<string[]>("versions", "Comma separated list of package versions to deprecate. Note, that all versions of the specified package will be deprecated.");
+            result.AddOption(versionsOption);
+
+            var messageOption = new Option<string>("message", "The deprecation message to show in NuGet.org for each of the versions to be deprecated.");
+            result.AddOption(messageOption);
+
+            AddForceOption(result);
+
+            var undoOption = new Option<bool>("undo", "Calls the underlying NuGet APIs to undo deprecation of the specified package.");
+            result.AddOption(undoOption);
+
+            result.SetHandler(async (string apiKey, string packageId, string[] versions, string message, bool force, bool undo) =>
             {
-                using NuGetPackageManager pkgManager = CreatePackageManager(options, logger);
-                foreach (var package in options.PackageNames.Where(p => !string.IsNullOrWhiteSpace(p)))
-                {
-                    var versions = await pkgManager.GetPackageVersionsAsync(package, CancellationToken.None);
-                    foreach (var version in versions)
-                    {
-                        if (options.Force)
-                            await pkgManager.DeletePackageAsync(version.Item1, version.Item2, CancellationToken.None);
-                        else
-                            logger.LogInformation($"Package {package} version {version} will be removed");
-                    }
-                }
-            },
-               errors =>
-               {
-                   HandleErrors(errors, logger);
-                   return Task.FromResult(0);
-               });
+                var deprecateOptions = new DeprecationOptions(apiKey, packageId, versions, force, undo);
+                var handler = new CommandHandlers.DeprecateCommandHandler(deprecateOptions, logger);
+                await handler.TryHandle(deprecateOptions);
+            });
+
+            return result;
         }
 
-        private static async Task RunDeprecationAsync(string[] args, CompositeLogger logger)
+        private static Command BuildUnlistCommand()
         {
-            var deprecationOptions = Parser.Default.ParseArguments<DeprecationOptions>(args);
-            await deprecationOptions.MapResult(
-                async options =>
-                {
-                    using NuGetPackageManager pkgManager = CreatePackageManager(options, logger);
-                    await pkgManager.DeprecatePackagesAsync(options.PackageName, options.PackageVersions, options.Message, CancellationToken.None);
-                },
-               errors =>
-               {
-                   HandleErrors(errors, logger);
-                   return Task.FromResult(0);
-               });
-        }
+            var result = new Command("unlist", "Unlist all versions of the specified packages");
 
-        private static void HandleErrors(IEnumerable<Error> errors, ILogger logger)
-        {
-            foreach (var error in errors)
+            var packageNamesOption = new Option<string[]>("packages", "A comman-separated list of package names to unlist");
+            result.AddOption(packageNamesOption);
+
+            AddForceOption(result);
+
+            result.SetHandler(async (string apiKey, string[] packageNames, bool force) =>
             {
-                logger.LogError(error.ToString());
-            }
+                var unlistOptions = new UnlistOptions(apiKey, packageNames, force);
+                var handler = new CommandHandlers.UnlistCommandHandler(unlistOptions, logger);
+                await handler.TryHandle(unlistOptions);
+            });
+
+            return result;
         }
 
-        private static NuGetPackageManager CreatePackageManager(INugetApiOptions options, ILogger logger)
+        private static void AddForceOption(Command result)
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("X-NuGet-ApiKey", options.ApiKey);
-
-            using NuGetPackageManager pkgManager = new NuGetPackageManager(client, logger);
-            return pkgManager;
+            var forceOption = new Option<bool>("force", "Calls the underlying NuGet APIs to deprecate the package. Without this parameter (default) the command executes in `dry-run` mode.");
+            result.AddOption(forceOption);
         }
     }
 }

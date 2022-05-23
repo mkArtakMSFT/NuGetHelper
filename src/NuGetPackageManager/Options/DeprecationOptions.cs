@@ -1,46 +1,26 @@
-﻿using CommandLine;
-using CommandLine.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NuGetPackageManager.Options
 {
-    [Verb("deprecate", HelpText = "Deprecate specified versions of the specified package")]
     public class DeprecationOptions : INugetApiOptions
     {
-        public DeprecationOptions(string apiKey, string packageName, IEnumerable<string> packageVersions, bool force)
+        public DeprecationOptions(string apiKey, string packageId, IEnumerable<string> versions, bool force, bool undo)
         {
             this.ApiKey = apiKey;
-            this.PackageVersions = packageVersions;
-            this.PackageName = packageName;
+            this.Versions = versions;
+            this.PackageId = packageId;
             this.Force = force;
+            this.Undo = undo;
         }
 
-        [Option("apiKey", HelpText = "Provide PAT for the NuGet API account", Required = true)]
-        public string ApiKey { get; }
+        public string ApiKey { get; set; }
 
-        [Option("packageId", HelpText = "The name of the package to deprecate", Required = true)]
-        public string PackageName { get; }
+        public string PackageId { get; set; }
+        public bool Force { get; private set; }
+        public IEnumerable<string> Versions { get; set; }
 
-        [Option("packages", HelpText = "Comma separated list of package versions to deprecate. Note, that all versions of the specified package will be deprecated.", Required = true, Separator = ',')]
-        public IEnumerable<string> PackageVersions { get; }
+        public string Message { get; set; }
 
-        [Option("message", HelpText = "The deprecation message to show in NuGet.org for each of the versions to be deprecated.", Required = true)]
-        public string Message { get; }
-
-        [Option("force",
-            HelpText = "Calls the underlying NuGet APIs to deprecate the package. Without this parameter (default) the command executes in `dry-run` mode.",
-            Required = false,
-            Default = false)]
-        public bool Force { get; }
-
-        [Usage(ApplicationAlias = "nugetPackageManager")]
-        public static IEnumerable<Example> Examples
-        {
-            get
-            {
-                yield return new Example("Normal scenario", new DeleteOptions("yourApiKeyFromNuGet", new[] { "pkg1", "1, 2.1, 3.3.4" }, false));
-                yield return new Example("Normal scenario", new DeleteOptions("yourApiKeyFromNuGet", new[] { "pkg1", "3.3" }, true));
-            }
-        }
+        public bool Undo { get; set; }
     }
 }
