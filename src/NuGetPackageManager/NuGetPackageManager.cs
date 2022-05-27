@@ -20,13 +20,13 @@ namespace NuGetPackageManager
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
-            this.client.BaseAddress = new Uri("https://www.nuget.org/api/v2/package/", UriKind.Absolute);
+            this.client.BaseAddress = new Uri("https://dev.nugettest.org/api/v2/package/", UriKind.Absolute);
         }
 
         public async Task<IEnumerable<Tuple<string, NuGetVersion>>> GetPackageVersionsAsync(string packageName, CancellationToken cancellationToken)
         {
             var cache = new SourceCacheContext();
-            var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            var repository = Repository.Factory.GetCoreV3(/*"https://api.nuget.org/v3/index.json"*/"https://dev.nugettest.org/v3/index.json");
             var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
             IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
@@ -58,20 +58,21 @@ namespace NuGetPackageManager
         public async Task DeprecatePackagesAsync(string packageName, IEnumerable<string> versions, string deprecationMessage, CancellationToken cancellationToken)
         {
             var versionsString = String.Join(',', versions);
-            this.logger.LogInformation($"Deprecating versions {versionsString} of package {packageName} ");
+            logger.LogInformation($"Deprecating versions {versionsString} of package {packageName} ");
             var deprecationContext = new
             {
-                versions = versions.Select(v => v.ToJson()).ToArray(),
-                isLegacy = false,
+                versions = versions,
+                isLegacy = true,
                 hasCriticalBugs = false,
-                isOther = false,
+                isOther = true,
                 //alternatePackageId = null,
                 //alternatePackageVersion = context?.AlternatePackageVersion,
                 message = deprecationMessage
             };
 
             var bodyJson = System.Text.Json.JsonSerializer.Serialize(deprecationContext);
-            var response = await this.client.PutAsync($"/{packageName}/deprecations", new StringContent(bodyJson, System.Text.Encoding.UTF8, "application/json"), cancellationToken);
+            logger.LogInformation(bodyJson);
+            var response = await this.client.PutAsync($"{packageName}/deprecations", new StringContent(bodyJson, System.Text.Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 

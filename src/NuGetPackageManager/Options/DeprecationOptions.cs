@@ -4,10 +4,11 @@ namespace NuGetPackageManager.Options
 {
     public class DeprecationOptions : INugetApiOptions
     {
-        public DeprecationOptions(string apiKey, string packageId, IEnumerable<string> versions, bool force, bool undo)
+        public DeprecationOptions(string apiKey, string packageId, IEnumerable<string> versions, string message, bool force, bool undo)
         {
             this.ApiKey = apiKey;
             this.Versions = versions;
+            this.Message = message;
             this.PackageId = packageId;
             this.Force = force;
             this.Undo = undo;
