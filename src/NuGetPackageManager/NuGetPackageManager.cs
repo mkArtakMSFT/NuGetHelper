@@ -20,13 +20,13 @@ namespace NuGetPackageManager
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
-            this.client.BaseAddress = new Uri("https://dev.nugettest.org/api/v2/package/", UriKind.Absolute);
+            this.client.BaseAddress = new Uri("https://www.nuget.org/api/v2/package/", UriKind.Absolute);
         }
 
         public async Task<IEnumerable<Tuple<string, NuGetVersion>>> GetPackageVersionsAsync(string packageName, CancellationToken cancellationToken)
         {
             var cache = new SourceCacheContext();
-            var repository = Repository.Factory.GetCoreV3(/*"https://api.nuget.org/v3/index.json"*/"https://dev.nugettest.org/v3/index.json");
+            var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
             var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
             IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
@@ -47,7 +47,7 @@ namespace NuGetPackageManager
             var response = await this.client.DeleteAsync(deleteRequestUri, cancellationToken);
             if (response.StatusCode == System.Net.HttpStatusCode.NoContent || response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                this.logger.LogInformation($"Package {package} removed successfully");
+                this.logger.LogInformation($"Package {package} was removed successfully");
             }
             else
             {

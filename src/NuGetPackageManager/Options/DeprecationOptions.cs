@@ -17,7 +17,9 @@ namespace NuGetPackageManager.Options
         public string ApiKey { get; set; }
 
         public string PackageId { get; set; }
+
         public bool Force { get; private set; }
+        
         public IEnumerable<string> Versions { get; set; }
 
         public string Message { get; set; }
