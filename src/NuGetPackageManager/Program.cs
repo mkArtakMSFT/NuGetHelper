@@ -3,6 +3,7 @@ using NuGetPackageManager.Options;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGetPackageManager
@@ -13,6 +14,9 @@ namespace NuGetPackageManager
 
         static async Task Main(string[] args)
         {
+            Console.WriteLine("Delaying 2 minutes before execution");
+            await Task.Delay((int)System.TimeSpan.FromMinutes(2).TotalMilliseconds);
+
             var rootCommand = new RootCommand("NuGet package manager command-line app");
             var apiKeyOption = new Option<string>("--apiKey", "Provide PAT for the NuGet API account");
             //rootCommand.AddGlobalOption(apiKeyOption);

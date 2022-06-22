@@ -71,9 +71,16 @@ namespace NuGetPackageManager
             };
 
             var bodyJson = System.Text.Json.JsonSerializer.Serialize(deprecationContext);
-            logger.LogInformation(bodyJson);
             var response = await this.client.PutAsync($"{packageName}/deprecations", new StringContent(bodyJson, System.Text.Encoding.UTF8, "application/json"), cancellationToken);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                logger.LogInformation($"Successfully deprecated versions {versionsString} of package {packageName}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Failed to deprecate versions {versionsString} of package {packageName}. Reason: {ex.Message}");
+            }
         }
 
         public void Dispose()
