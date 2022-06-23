@@ -1,5 +1,6 @@
 ﻿using NuGet.Common;
 using NuGetPackageManager.Options;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,16 @@ namespace NuGetPackageManager.CommandHandlers
 
         protected override async Task Handle(NuGetPackageManager packageManager, DeprecationOptions options)
         {
-            await packageManager.DeprecatePackagesAsync(options.PackageId, options.Versions, options.Message, CancellationToken.None);
+            try
+            {
+                await packageManager.DeprecatePackagesAsync(options.PackageId, options.Versions, options.Message, CancellationToken.None);
+                this.Logger.LogInformation($"Successfully deprecated versions {string.Join(',', options.Versions)} of package {options.PackageId}");
+            }
+            catch (Exception ex)
+            {
+                this.Logger.LogError($"Failed to deprecate versions {string.Join(',', options.Versions)} of package {options.PackageId}. Reason: {ex.Message}");
+                throw;
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace NuGetPackageManager
             await Task.Delay((int)System.TimeSpan.FromMinutes(DelayInMinutes).TotalMilliseconds);
 
             var rootCommand = new RootCommand("NuGet package manager command-line app");
-            var apiKeyOption = new Option<string>("--apiKey", "Provide PAT for the NuGet API account");
+            var apiKeyOption = new Option<string>("--apiKeys", "Provide comma-separated list of PATs for the NuGet API account");
             //rootCommand.AddGlobalOption(apiKeyOption);
 
             rootCommand.Add(BuildUnlistCommand());
@@ -30,14 +30,14 @@ namespace NuGetPackageManager
 
         private static Command BuildDeprecateCommand()
         {
-            var apiKeyOption = new Option<string>("--apiKey", "Provide PAT for the NuGet API account");
+            var apiKeysOption = new Option<string>("--apiKeys", "Provide comma-separated list of PATs for the NuGet API account");
             var packageIdOption = new Option<string>("--packageId", "The name of the package to deprecate");
             var versionsOptions = new Option<string>("--versions", "Comma separated list of package versions to deprecate. Note, that all versions of the specified package will be deprecated.");
             var messageOption = new Option<string>("--message", "The deprecation message to show in NuGet.org for each of the versions to be deprecated.");
 
             var result = new Command("deprecate", "Deprecate specific versions of a specified package")
             {
-                apiKeyOption,
+                apiKeysOption,
                 packageIdOption,
                 versionsOptions,
                 messageOption
@@ -48,12 +48,17 @@ namespace NuGetPackageManager
             //var undoOption = new Option<bool>("--undo", "Calls the underlying NuGet APIs to undo deprecation of the specified package.");
             //result.AddOption(undoOption);
 
-            result.SetHandler(async (string apiKey, string packageId, string versions, string message/*, bool force, bool undo*/) =>
+            result.SetHandler(async (string apiKeys, string packageId, string versions, string message/*, bool force, bool undo*/) =>
             {
-                var deprecateOptions = new DeprecationOptions(apiKey, packageId, versions.Split(',', StringSplitOptions.RemoveEmptyEntries), message, true, false /*force, undo*/);
-                var handler = new CommandHandlers.DeprecateCommandHandler(deprecateOptions, logger);
-                await handler.TryHandle(deprecateOptions);
-            }, apiKeyOption, packageIdOption, versionsOptions, messageOption);
+                var keys = apiKeys.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var key in keys)
+                {
+                    var deprecateOptions = new DeprecationOptions(key.Trim(), packageId, versions.Split(',', StringSplitOptions.RemoveEmptyEntries), message, true, false /*force, undo*/);
+                    var handler = new CommandHandlers.DeprecateCommandHandler(deprecateOptions, logger);
+                    if (await handler.TryHandle(deprecateOptions))
+                        break;
+                }
+            }, apiKeysOption, packageIdOption, versionsOptions, messageOption);
 
             return result;
         }
