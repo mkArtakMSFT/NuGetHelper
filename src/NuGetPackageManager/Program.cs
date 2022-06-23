@@ -10,7 +10,7 @@ namespace NuGetPackageManager
 {
     class Program
     {
-        private const int DelayInMinutes = 2;
+        private const int DelayInMinutes = 1;
         static ILogger logger = new CompositeLogger();
 
         static async Task Main(string[] args)
