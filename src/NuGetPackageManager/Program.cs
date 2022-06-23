@@ -10,12 +10,13 @@ namespace NuGetPackageManager
 {
     class Program
     {
+        private const int DelayInMinutes = 2;
         static ILogger logger = new CompositeLogger();
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Delaying 2 minutes before execution");
-            await Task.Delay((int)System.TimeSpan.FromMinutes(2).TotalMilliseconds);
+            Console.WriteLine($"Delaying {DelayInMinutes} minutes before execution");
+            await Task.Delay((int)System.TimeSpan.FromMinutes(DelayInMinutes).TotalMilliseconds);
 
             var rootCommand = new RootCommand("NuGet package manager command-line app");
             var apiKeyOption = new Option<string>("--apiKey", "Provide PAT for the NuGet API account");
